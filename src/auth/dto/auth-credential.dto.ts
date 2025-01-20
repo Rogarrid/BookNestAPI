@@ -19,6 +19,7 @@ export class AuthDto extends AuthUserDto {
 }
 
 export class SignUpResponseDto {
+  message: string;
   user: AuthUserDto;
   token: string;
 }

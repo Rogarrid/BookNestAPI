@@ -3,7 +3,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../services/prisma/prisma.service';
 import { AuthDto, SignUpResponseDto } from './dto/auth-credential.dto';
-import { findUserByEmail } from 'src/libs/utils';
+import { findUserByEmail } from '../libs/utils';
 
 @Injectable()
 export class AuthService {
@@ -30,7 +30,7 @@ export class AuthService {
 
     const token = this.jwtService.sign({ email: user.email, sub: user.id });
 
-    return { user, token };
+    return { message: 'User created successfully', user, token };
   }
 
   async signIn(AuthDto: AuthDto): Promise<string> {
