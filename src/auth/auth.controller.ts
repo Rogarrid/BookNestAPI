@@ -4,6 +4,7 @@ import { AuthDto, SignUpResponseDto } from './dto/auth-credential.dto';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { Public } from 'src/decorators/public.decorator';
 
+//TODO: reset password, reset access token with refresh token, modify password
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {

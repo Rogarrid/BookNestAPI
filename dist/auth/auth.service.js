@@ -14,6 +14,7 @@ const common_1 = require("@nestjs/common");
 const bcrypt = require("bcrypt");
 const jwt_1 = require("@nestjs/jwt");
 const prisma_service_1 = require("../services/prisma/prisma.service");
+const utils_1 = require("../libs/utils");
 let AuthService = class AuthService {
     constructor(prisma, jwtService) {
         this.prisma = prisma;
@@ -21,12 +22,7 @@ let AuthService = class AuthService {
     }
     async signUp(AuthDto) {
         const { username, email, password, role } = AuthDto;
-        const userExists = await this.prisma.user.findUnique({
-            where: { email },
-        });
-        if (userExists) {
-            throw new Error('Email already exists');
-        }
+        await (0, utils_1.findUserByEmail)(this.prisma, email, 'signup');
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = await this.prisma.user.create({
             data: {
@@ -36,24 +32,21 @@ let AuthService = class AuthService {
                 role: role ? role : 'user',
             },
         });
-        const payload = { email: user.email, sub: user.id };
-        const token = this.jwtService.sign(payload);
+        const token = this.jwtService.sign({ email: user.email, sub: user.id });
         return { user, token };
     }
     async signIn(AuthDto) {
         const { email, password } = AuthDto;
-        const user = await this.prisma.user.findUnique({
-            where: { email },
-        });
-        if (!user) {
-            throw new Error('User not found');
-        }
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+        const userExists = await (0, utils_1.findUserByEmail)(this.prisma, email, 'signin');
+        const isPasswordValid = await bcrypt.compare(password, userExists.password);
         if (!isPasswordValid) {
             throw new Error('Invalid credentials');
         }
-        const payload = { email: user.email, sub: user.id, role: user.role };
-        const token = this.jwtService.sign(payload);
+        const token = this.jwtService.sign({
+            email: userExists.email,
+            sub: userExists.id,
+            role: userExists.role,
+        });
         return token;
     }
 };

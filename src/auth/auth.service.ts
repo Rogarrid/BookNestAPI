@@ -3,6 +3,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../services/prisma/prisma.service';
 import { AuthDto, SignUpResponseDto } from './dto/auth-credential.dto';
+import { findUserByEmail } from 'src/libs/utils';
 
 @Injectable()
 export class AuthService {
@@ -14,12 +15,7 @@ export class AuthService {
   async signUp(AuthDto: AuthDto): Promise<SignUpResponseDto> {
     const { username, email, password, role } = AuthDto;
 
-    const userExists = await this.prisma.user.findUnique({
-      where: { email },
-    });
-    if (userExists) {
-      throw new Error('Email already exists');
-    }
+    await findUserByEmail(this.prisma, email, 'signup');
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -32,8 +28,7 @@ export class AuthService {
       },
     });
 
-    const payload = { email: user.email, sub: user.id };
-    const token = this.jwtService.sign(payload);
+    const token = this.jwtService.sign({ email: user.email, sub: user.id });
 
     return { user, token };
   }
@@ -41,21 +36,19 @@ export class AuthService {
   async signIn(AuthDto: AuthDto): Promise<string> {
     const { email, password } = AuthDto;
 
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    const userExists = await findUserByEmail(this.prisma, email, 'signin');
 
-    if (!user) {
-      throw new Error('User not found');
-    }
+    const isPasswordValid = await bcrypt.compare(password, userExists.password);
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new Error('Invalid credentials');
     }
 
-    const payload = { email: user.email, sub: user.id, role: user.role };
-    const token = this.jwtService.sign(payload);
+    const token = this.jwtService.sign({
+      email: userExists.email,
+      sub: userExists.id,
+      role: userExists.role,
+    });
 
     return token;
   }
