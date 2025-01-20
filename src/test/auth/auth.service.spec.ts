@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthService } from '../../auth/auth.service';
+import { AuthService } from '../../modules/auth/auth.service';
 import { PrismaService } from '../../services/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { AuthDto, SignUpResponseDto } from '../../auth/dto/auth-credential.dto';
+import { AuthDto, SignUpResponseDto } from '../../modules/auth/auth.dto';
 import { findUserByEmail } from '../../libs/utils';
 
 jest.mock('../../libs/utils', () => ({

@@ -1,8 +1,8 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthDto, SignUpResponseDto } from './dto/auth-credential.dto';
+import { AuthDto, SignUpResponseDto } from './auth.dto';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
-import { Public } from '../decorators/public.decorator';
+import { Public } from '../../decorators/public.decorator';
 
 //TODO: reset password, reset access token with refresh token, modify password
 @ApiTags('Auth')
