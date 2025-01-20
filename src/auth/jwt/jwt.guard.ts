@@ -1,16 +1,23 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { IS_PUBLIC_KEY } from '../../decorators/public.decorator';
+import { PrismaService } from 'src/services/prisma/prisma.service';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private jwtService: JwtService,
+    private prisma: PrismaService,
   ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -21,14 +28,24 @@ export class JwtAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const token = request.headers.authorization?.split(' ')[1];
     if (!token) {
-      return false;
+      throw new UnauthorizedException('Token not found');
     }
     try {
       const decoded = this.jwtService.verify(token);
-      request.user = decoded;
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: decoded.sub },
+      });
+      if (!user || user.email !== decoded.email) {
+        throw new UnauthorizedException(
+          'User not found or token does not match',
+        );
+      }
+
+      request.user = user;
       return true;
     } catch (error) {
-      return false;
+      throw new UnauthorizedException('Invalid token');
     }
   }
 }

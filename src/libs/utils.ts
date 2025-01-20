@@ -6,11 +6,10 @@ export async function findUserByEmail(
   email: string,
   methodAuth: string,
 ): Promise<User | null> {
-  console.log(email);
   const userExists = await prisma.user.findUnique({
     where: { email },
   });
-  console.log(userExists);
+
   if (methodAuth === 'signup' && userExists) {
     throw new Error('Email already exists');
   }
