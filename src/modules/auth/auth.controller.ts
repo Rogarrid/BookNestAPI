@@ -24,6 +24,7 @@ export class AuthController {
     };
   }
 
+  @Public()
   @ApiOperation({ summary: 'Sign in an existing user' })
   @ApiBody({ type: AuthDto })
   @ApiResponse({ status: 200, description: 'Login successful.' })
